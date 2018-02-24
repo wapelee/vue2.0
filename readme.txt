@@ -242,3 +242,92 @@ var app=new Vue({
             }
         }
 })
+
+9、其他内部指令(v-pre & v-cloak & v-once)
+v-pre指令
+在模板中跳过vue的编译，直接输出原始值。就是在标签中加入v-pre就不会输出vue中的data值了。
+
+<div v-pre>{{message}}</div>
+
+这时并不会输出我们的message值，而是直接在网页中显示{{message}}
+
+v-cloak指令
+在vue渲染完指定的整个DOM后才进行显示。它必须和CSS样式一起使用，HTML 绑定 Vue实例，在页面加载时会闪烁,加上v-cloak可以解决
+
+[v-cloak] {
+  display: none;
+}
+
+<div v-cloak>
+  {{ message }}
+</div>
+
+v-once指令
+在第一次DOM时进行渲染，渲染完成后视为静态内容，跳出以后的渲染过程。
+
+<div v-once>第一次绑定的值：{{message}}</div>
+<div><input type="text" v-model="message"></div>
+
+全局API：
+
+1、Vue.directive 自定义指令
+一、什么是全局API？
+全局API并不在构造器里，而是先声明全局变量或者直接在Vue上定义一些新功能，Vue内置了一些全局API，说的简单些就是，在构造器外部用Vue提供给我们的API函数来定义新的功能。
+
+二、Vue.directive自定义指令
+自己定义一个全局的指令。我们这里使用Vue.directive( );
+Vue.directive('jspang',function(el,binding,vnode){
+        el.style='color:'+binding.value;
+});
+
+可以看到数字已经变成了绿色，说明自定义指令起到了作用。可能您看这个代码还是有些不明白的，比如传入的三个参数到底是什么。
+三、自定义指令中传递的三个参数
+
+el: 指令所绑定的元素，可以用来直接操作DOM。
+
+binding:  一个对象，包含指令的很多信息。
+
+vnode: Vue编译生成的虚拟节点。
+
+四、自定义指令的生命周期
+
+自定义指令有五个生命周期（也叫钩子函数），分别是 bind,inserted,update,componentUpdated,unbind
+
+bind:只调用一次，指令第一次绑定到元素时调用，用这个钩子函数可以定义一个绑定时执行一次的初始化动作。
+inserted:被绑定元素插入父节点时调用（父节点存在即可调用，不必存在于document中）。
+update:被绑定于元素所在的模板更新时调用，而无论绑定值是否变化。通过比较更新前后的绑定值，可以忽略不必要的模板更新。
+componentUpdated:被绑定元素所在模板完成一次更新周期时调用。
+unbind:只调用一次，指令与元素解绑时调用。
+
+五、解绑数据
+app.$destroy()
+
+2、Vue.extend构造器的延伸
+一、什么是Vue.extend？
+Vue.extend 返回的是一个“扩展实例构造器”,也就是预设了部分选项的Vue实例构造器。经常服务于Vue.component用来生成组件，可以简单理解为当在模板中遇到该组件名称作为标签的自定义元素时，会自动调用“扩展实例构造器”来生产组件实例，并挂载到自定义元素上。
+
+由于我们还没有学习Vue的自定义组件，所以我们先看跟组件无关的用途。
+
+二、自定义无参数标签
+我们想象一个需求，需求是这样的，要在博客页面多处显示作者的网名，并在网名上直接有链接地址。我们希望在html中只需要写<author></author> ，这和自定义组件很像，但是他没有传递任何参数，只是个静态标签。
+
+我们的Vue.extend该登场了，我们先用它来编写一个扩展实例构造器。代码如下：
+var authorExtend = Vue.extend({
+    template:"<p><a :href='authorUrl'>{{authorName}}</a></p>",
+    data:function(){
+    return{
+          authorName:'JSPang',
+          authorUrl:'http://www.jspang.com'
+          }
+    }
+});
+
+这时html中的标签还是不起作用的，因为扩展实例构造器是需要挂载的，我们再进行一次挂载。
+
+new authorExtend().$mount('author');
+
+这时我们在html写<author><author>就是管用的.
+
+三、挂载到普通标签上
+还可以通过HTML标签上的id或者class来生成扩展实例构造器，Vue.extend里的代码是一样的，只是在挂载的时候，我们用类似jquery的选择器的方法，来进行挂载就可以了。
+new authorExtend().$mount('#author');
