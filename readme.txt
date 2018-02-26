@@ -331,3 +331,446 @@ new authorExtend().$mount('author');
 三、挂载到普通标签上
 还可以通过HTML标签上的id或者class来生成扩展实例构造器，Vue.extend里的代码是一样的，只是在挂载的时候，我们用类似jquery的选择器的方法，来进行挂载就可以了。
 new authorExtend().$mount('#author');
+
+3、Vue.set全局操作
+Vue.set 的作用就是在构造器外部操作构造器内部的数据、属性或者方法。比如在vue构造器内部定义了一个count为1的数据，我们在构造器外部定义了一个方法，要每次点击按钮给值加1.就需要用到Vue.set。
+
+一、引用构造器外部数据：
+什么是外部数据，就是不在Vue构造器里里的data处声明，而是在构造器外部声明，然后在data处引用就可以了。外部数据的加入让程序更加灵活，我们可以在外部获取任何想要的数据形式，然后让data引用。
+
+看一个简单的代码：
+//在构造器外部声明数据
+ var outData={
+    count:1,
+    goodName:'car'
+};
+var app=new Vue({
+    el:'#app',
+    //引用外部数据
+    data:outData
+})
+
+二、在外部改变数据的三种方法：
+1、用Vue.set改变
+function add(){
+       Vue.set(outData,'count',4);
+ }
+
+2、用Vue对象的方法添加
+ app.count++;
+
+3、直接操作外部数据
+outData.count++;
+
+其实这三种方式都可以操作外部的数据，Vue也给我们增加了一种操作外部数据的方法。
+
+三、为什么要有Vue.set的存在?
+由于Javascript的限制，Vue不能自动检测以下变动的数组。
+*当你利用索引直接设置一个项时，vue不会为我们自动更新。
+
+*当你修改数组的长度时，vue不会为我们自动更新。
+
+看一段代码：
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../assets/js/vue.js"></script>
+    <title>Vue.set 全局操作</title>
+</head>
+<body>
+    <h1>Vue.set 全局操作</h1>
+    <hr>
+    <div id="app">
+        <ul>
+            <li v-for=" aa in arr">{{aa}}</li>
+        </ul>
+       
+    </div>
+    <button onclick="add()">外部添加</button>
+ 
+    <script type="text/javascript">
+     
+        function add(){
+            console.log("我已经执行了");
+           app.arr[1]='ddd';
+           //Vue.set(app.arr,1,'ddd');
+        }
+        var outData={
+            arr:['aaa','bbb','ccc']
+        };
+        var app=new Vue({
+            el:'#app',
+            data:outData
+        })
+    </script>
+</body>
+</html>
+
+这时我们的界面是不会自动跟新数组的，我们需要用Vue.set(app.arr,1,’ddd’)来设置改变，vue才会给我们自动更新，这就是Vue.set存在的意义。
+
+4、Vue的生命周期（钩子函数）
+Vue一共有10个生命周期函数，我们可以利用这些函数在vue的每个阶段都进行操作数据或者改变内容。
+
+beforeCreate:function(){
+                console.log('1-beforeCreate 初始化之后');
+            },
+            created:function(){
+                console.log('2-created 创建完成');
+            },
+            beforeMount:function(){
+                console.log('3-beforeMount 挂载之前');
+            },
+            mounted:function(){
+                console.log('4-mounted 被创建');
+            },
+            beforeUpdate:function(){
+                console.log('5-beforeUpdate 数据更新前');
+            },
+            updated:function(){
+                console.log('6-updated 被更新后');
+            },
+            activated:function(){
+                console.log('7-activated');
+            },
+            deactivated:function(){
+                console.log('8-deactivated');
+            },
+            beforeDestroy:function(){
+                console.log('9-beforeDestroy 销毁之前');
+            },
+            destroyed:function(){
+                console.log('10-destroyed 销毁之后')
+            }
+
+4、Template 制作模版
+一、直接写在选项里的模板
+直接在构造器里的template选项后边编写。这种写法比较直观，但是如果模板html代码太多，不建议这么写。
+javascript代码：
+ var app=new Vue({
+     el:'#app',
+     data:{
+         message:'hello Vue!'
+      },
+     template:`
+        <h1 style="color:red">我是选项模板</h1>
+     `
+})
+
+这里需要注意的是模板的标识不是单引号和双引号，而是，就是Tab上面的键。
+
+二、写在<template>标签里的模板
+这种写法更像是在写HTML代码，就算不会写Vue的人，也可以制作页面。
+    <template id="demo2">
+             <h2 style="color:red">我是template标签模板</h2>
+    </template>
+ 
+    <script type="text/javascript">
+        var app=new Vue({
+            el:'#app',
+            data:{
+                message:'hello Vue!'
+            },
+            template:'#demo2'
+        })
+    </script>
+
+三、写在<script>标签里的模板
+这种写模板的方法，可以让模板文件从外部引入。
+    <script type="x-template" id="demo3">
+        <h2 style="color:red">我是script标签模板</h2>
+    </script>
+ 
+    <script type="text/javascript">
+        var app=new Vue({
+            el:'#app',
+            data:{
+                message:'hello Vue!'
+            },
+            template:'#demo3'
+        })
+    </script>
+
+6、Component 初识组件
+component组件是Vue学习的重点、重点、重点，重要的事情说三遍。其实组件就是制作自定义的标签，这些标签在HTML中是没有的。比如：<jspang></jspang>，那我们就开始学习这种技巧吧。
+
+一、全局化注册组件
+全局化就是在构造器的外部用Vue.component来注册，我们现在就注册一个<jspang></jspang>的组件来体验一下。
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../assets/js/vue.js"></script>
+    <title>component-1</title>
+</head>
+<body>
+    <h1>component-1</h1>
+    <hr>
+    <div id="app">
+        <jspang></jspang>
+    </div>
+ 
+    <script type="text/javascript">
+        //注册全局组件
+        Vue.component('jspang',{
+            template:`<div style="color:red;">全局化注册的jspang标签</div>`
+        })
+        var app=new Vue({
+            el:'#app',
+            data:{
+            }
+        })
+    </script>
+</body>
+</html>
+
+我们在javascript里注册了一个组件，在HTML中调用了他。这就是最简单的一个组件的编写方法，并且它可以放到多个构造器的作用域里。
+
+二、局部注册组件
+局部注册组件和全局注册组件是相对应的，局部注册的组件只能在组件注册的作用域里进行使用，其他作用域使用无效。
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../assets/js/vue.js"></script>
+    <title>component-1</title>
+</head>
+<body>
+    <h1>component-1</h1>
+    <hr>
+    <div id="app">
+      <panda></panda>
+    </div>
+ 
+    <script type="text/javascript">
+        var app=new Vue({
+            el:'#app',
+            components:{
+                "panda":{
+                    template:`<div style="color:red;">局部注册的panda标签</div>`
+                }
+            }
+        })
+    </script>
+</body>
+</html>
+
+从代码中你可以看出局部注册其实就是写在构造器里，但是你需要注意的是，构造器里的components 是加s的，而全局注册是不加s的。
+
+三、组件和指令的区别
+组件注册的是一个标签，而指令注册的是已有标签里的一个属性。在实际开发中我们还是用组件比较多，指令用的比较少。因为指令看起来封装的没那么好，这只是个人观点。
+
+7、Component 组件props 属性设置
+props选项就是设置和获取标签上的属性值的，例如我们有一个自定义的组件<panda></panda>,这时我们想给他加个标签属性写成<panda here=’China’></panda> 意思就是熊猫来自中国，当然这里的China可以换成任何值。定义属性的选项是props。
+
+一、定义属性并获取属性值
+
+定义属性我们需要用props选项，加上数组形式的属性名称，例如：props:[‘here’]。在组件的模板里读出属性值只需要用插值的形式，例如{{ here }}.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../assets/js/vue.js"></script>
+    <title>component-2</title>
+</head>
+<body>
+    <h1>component-2</h1>
+    <hr>
+    <div id="app">
+      <panda here="China"></panda>
+    </div>
+ 
+    <script type="text/javascript">
+        var app=new Vue({
+            el:'#app',
+            components:{
+                "panda":{
+                    template:`<div style="color:red;">Panda from {{ here }}.</div>`,
+                    props:['here']
+                }
+            }
+        })
+    </script>
+</body>
+</html>
+
+上面的代码定义了panda的组件，并用props设置了here的属性值，在here属性值里传递了China给组件。
+
+最后输出的结果是红色字体的Panda from China.
+
+二、属性中带‘-’的处理方式
+我们在写属性时经常会加入‘-’来进行分词，比如：<panda   from-here=”China”></panda>，那这时我们在props里如果写成props:[‘form-here’]是错误的，我们必须用小驼峰式写法props:[‘formHere’]。
+
+html文件：
+<panda from-here="China"></panda>
+
+javascript文件：
+        var app=new Vue({
+            el:'#app',
+            components:{
+                "panda":{
+                    template:`<div style="color:red;">Panda from {{ here }}.</div>`,
+                    props:['fromHere']
+                }
+            }
+        })
+
+PS：因为这里有坑，所以还是少用-为好。
+
+三、在构造器里向组件中传值
+把构造器中data的值传递给组件，我们只要进行绑定就可以了。
+
+我们直接看代码:
+Html文件：
+<panda v-bind:here="message"></panda>
+
+javascript文件：
+        var app=new Vue({
+            el:'#app',
+            data:{
+               message:'SiChuan' 
+            },
+            components:{
+                "panda":{
+                    template:`<div style="color:red;">Panda from {{ here }}.</div>`,
+                    props:['here']
+                }
+            }
+        })
+
+8、Component 父子组件关系
+在实际开发中我们经常会遇到在一个自定义组件中要使用其他自定义组件，这就需要一个父子组件关系。
+
+一、构造器外部写局部注册组件
+局部组件的编写放到了构造器内部，如果组件代码量很大，会影响构造器的可读性，造成拖拉和错误。
+
+我们把组件编写的代码放到构造器外部或者说单独文件。
+
+我们需要先声明一个对象,对象里就是组件的内容。
+var jspang = {
+   template:`<div>Panda from China!</div>`
+}
+
+声明好对象后在构造器里引用就可以了。
+components:{
+    "jspang":jspang
+}
+
+html中引用
+<jspang></jspang>
+
+二、父子组件的嵌套
+我们先声明一个父组件，比如叫jspang，然后里边我们加入一个city组件，我们来看这样的代码如何写。
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../assets/js/vue.js"></script>
+    <title>component-3</title>
+</head>
+<body>
+    <h1>component-3</h1>
+    <hr>
+    <div id="app">
+      <jspang></jspang>  
+    </div>
+    <script type="text/javascript">
+       var city={
+           template:`<div>Sichuan of China</div>`
+       }
+        var jspang = {
+            template:`<div>
+                    <p> Panda from China!</p>
+                    <city></city>
+            </div>`,
+            components:{
+                "city":city
+            }
+        }
+        var app=new Vue({
+            el:'#app',
+            components:{
+                "jspang":jspang
+            }
+           
+        })
+    </script>
+</body>
+</html>
+
+9、Component 标签
+<component></component>标签是Vue框架自定义的标签，它的用途就是可以动态绑定我们的组件，根据数据的不同更换不同的组件。
+
+1.我们先在构造器外部定义三个不同的组件，分别是componentA,componentB和componentC.
+ var componentA={
+     template:`<div>I'm componentA</div>`
+}
+ var componentB={
+      template:`<div>I'm componentB</div>`
+}
+var componentC={
+    template:`<div>I'm componentC</div>`
+}
+
+2.我们在构造器的components选项里加入这三个组件。
+components:{
+    "componentA":componentA,
+    "componentB":componentB,
+    "componentC":componentC,
+}
+
+3.我们在html里插入component标签，并绑定who数据，根据who的值不同，调用不同的组件。
+<component v-bind:is="who"></component>
+
+这就是我们的组件标签的基本用法。我们提高以下，给页面加个按钮，每点以下更换一个组件。
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../assets/js/vue.js"></script>
+    <title>component-4</title>
+</head>
+<body>
+    <h1>component-4</h1>
+    <hr>
+    <div id="app">
+       <component v-bind:is="who"></component>
+       <button @click="changeComponent">changeComponent</button>
+    </div>
+ 
+    <script type="text/javascript">
+        var componentA={
+            template:`<div style="color:red;">I'm componentA</div>`
+        }
+        var componentB={
+            template:`<div style="color:green;">I'm componentB</div>`
+        }
+        var componentC={
+            template:`<div style="color:pink;">I'm componentC</div>`
+        }
+       
+        var app=new Vue({
+            el:'#app',
+            data:{
+                who:'componentA'
+            },
+            components:{
+                "componentA":componentA,
+                "componentB":componentB,
+                "componentC":componentC,
+            },
+            methods:{
+                changeComponent:function(){
+                    if(this.who=='componentA'){
+                        this.who='componentB';
+                    }else if(this.who=='componentB'){
+                        this.who='componentC';
+                    }else{
+                        this.who='componentA';
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+</html>
